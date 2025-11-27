@@ -1,4 +1,4 @@
-local Library = LibraryBundle()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/alexkkork/grg-script/main/Release.lua"))()
 
 --==============================================================================
 -- SERVICES
