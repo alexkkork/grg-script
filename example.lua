@@ -119,18 +119,19 @@ percentLabel.TextSize = 14
 percentLabel.ZIndex = 101
 percentLabel.Parent = container
 
--- Loading animation in background
+-- Loading animation
 local loadingSteps = {
-    "Connecting to server...",
-    "Loading UI Library...",
-    "Initializing modules...",
-    "Loading ESP system...",
-    "Loading teleport system...",
-    "Loading player mods...",
-    "Loading autofarm...",
-    "Checking executor...",
-    "Applying theme...",
-    "Finalizing..."
+    {text = "Connecting to server...", target = 8},
+    {text = "Loading UI Library...", target = 20},
+    {text = "Fetching modules...", target = 32},
+    {text = "Initializing modules...", target = 45},
+    {text = "Loading ESP system...", target = 55},
+    {text = "Loading teleport system...", target = 65},
+    {text = "Loading player mods...", target = 75},
+    {text = "Loading autofarm...", target = 82},
+    {text = "Checking executor...", target = 90},
+    {text = "Applying theme...", target = 95},
+    {text = "Finalizing...", target = 98}
 }
 
 -- Load the library in background while showing loading screen
@@ -142,30 +143,44 @@ task.spawn(function()
     libraryLoaded = true
 end)
 
--- Run loading animation
-for i, stepText in ipairs(loadingSteps) do
-    statusLabel.Text = stepText
-    local progress = i / #loadingSteps
-    TweenService:Create(barFill, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
-        Size = UDim2.new(progress, 0, 1, 0)
-    }):Play()
-    percentLabel.Text = math.floor(progress * 100) .. "%"
-    task.wait(0.6)
+-- Run loading animation with smooth percentage counting
+local currentPercent = 0
+for i, step in ipairs(loadingSteps) do
+    statusLabel.Text = step.text
+    local targetPercent = step.target
+    
+    -- Smoothly count up to target
+    while currentPercent < targetPercent do
+        currentPercent = currentPercent + 1
+        percentLabel.Text = currentPercent .. "%"
+        barFill.Size = UDim2.new(currentPercent / 100, 0, 1, 0)
+        task.wait(0.04) -- ~25 updates per second for smooth animation
+    end
+    
+    task.wait(0.15) -- Small pause between steps
 end
 
 -- Wait for library to finish loading if it hasn't yet
+statusLabel.Text = "Loading complete..."
 while not libraryLoaded do
     task.wait(0.1)
 end
 
--- Finish loading and fade out
+-- Final count to 100%
+while currentPercent < 100 do
+    currentPercent = currentPercent + 1
+    percentLabel.Text = currentPercent .. "%"
+    barFill.Size = UDim2.new(currentPercent / 100, 0, 1, 0)
+    task.wait(0.02)
+end
+
+-- Show complete
 statusLabel.Text = "Complete!"
 percentLabel.Text = "100%"
-TweenService:Create(barFill, TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 1, 0)}):Play()
-task.wait(0.3)
+task.wait(0.5)
 
 -- Fade out
-local fadeInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local fadeInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 TweenService:Create(bg, fadeInfo, {BackgroundTransparency = 1}):Play()
 TweenService:Create(title, fadeInfo, {TextTransparency = 1}):Play()
 TweenService:Create(subtitle, fadeInfo, {TextTransparency = 1}):Play()
@@ -174,7 +189,7 @@ TweenService:Create(percentLabel, fadeInfo, {TextTransparency = 1}):Play()
 TweenService:Create(barBg, fadeInfo, {BackgroundTransparency = 1}):Play()
 TweenService:Create(barFill, fadeInfo, {BackgroundTransparency = 1}):Play()
 TweenService:Create(barStroke, fadeInfo, {Transparency = 1}):Play()
-task.wait(0.4)
+task.wait(0.5)
 loadingGui:Destroy()
 
 --==============================================================================
