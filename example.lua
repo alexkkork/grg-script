@@ -25,8 +25,9 @@ local function CreateLoadingScreen()
     
     local bg = Instance.new("Frame")
     bg.Name = "Background"
-    bg.Size = UDim2.new(1, 0, 1, 0)
-    bg.Position = UDim2.new(0, 0, 0, 0)
+    bg.AnchorPoint = Vector2.new(0, 0)
+    bg.Size = UDim2.new(1, 100, 1, 100)
+    bg.Position = UDim2.new(0, -50, 0, -50)
     bg.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
     bg.BorderSizePixel = 0
     bg.ZIndex = 100
