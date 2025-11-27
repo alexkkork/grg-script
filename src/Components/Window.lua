@@ -1,6 +1,7 @@
 local Window = {}
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local Utility = require(script.Parent.Parent.Core.Utility)
 local ThemeManager = require(script.Parent.Parent.Core.ThemeManager)
 local Acrylic = require(script.Parent.Parent.Core.Acrylic)
@@ -9,6 +10,7 @@ local SearchFeature = require(script.Parent.Parent.Features.Search)
 local Watermark = require(script.Parent.Parent.Features.Watermark)
 local KeybindList = require(script.Parent.Parent.Features.KeybindList)
 local SaveManager = require(script.Parent.Parent.Core.SaveManager)
+local Notifications = require(script.Parent.Parent.Features.Notifications)
 
 function Window.new(options)
     options = options or {}
@@ -317,6 +319,58 @@ function Window.new(options)
     SearchFeature:Init(searchBar, WindowObj)
     Watermark:Init(gui)
     KeybindList:Init(gui)
+    Notifications:Init(gui)
+    
+    -- Expose Notifications on the window object
+    WindowObj.Notifications = Notifications
+    
+    -- Notify helper
+    function WindowObj:Notify(options)
+        return Notifications:Notify(options)
+    end
+    
+    -- Unload function with progress notification
+    function WindowObj:Unload()
+        local notif = Notifications:Loading("Unloading", "Cleaning up UI...", 3)
+        
+        -- Animate progress
+        task.spawn(function()
+            for i = 1, 10 do
+                task.wait(0.15)
+                if notif and notif.UpdateProgress then
+                    notif.UpdateProgress(1 - (i / 10))
+                end
+                if notif and notif.UpdateContent then
+                    local messages = {
+                        "Cleaning up UI...",
+                        "Stopping connections...",
+                        "Clearing cache...",
+                        "Removing elements...",
+                        "Saving settings...",
+                        "Disconnecting events...",
+                        "Finalizing...",
+                        "Almost done...",
+                        "Wrapping up...",
+                        "Goodbye!"
+                    }
+                    notif.UpdateContent(messages[i] or "Unloading...")
+                end
+            end
+        end)
+        
+        task.wait(1.5)
+        
+        -- Fade out main window
+        local fadeOut = TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, 700, 0, 0)
+        })
+        fadeOut:Play()
+        fadeOut.Completed:Wait()
+        
+        -- Destroy the GUI
+        gui:Destroy()
+    end
     
     return WindowObj
 end

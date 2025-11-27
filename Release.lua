@@ -316,91 +316,234 @@ end
 modules["Notifications"] = {
     fn = function()
         local Notifications = {}
+local TweenService = game:GetService("TweenService")
 local Utility = LoadModule("Utility")
 local ThemeManager = LoadModule("ThemeManager")
 
 local container = nil
+local notificationQueue = {}
+local MAX_VISIBLE = 5
 
 function Notifications:Init(gui)
     container = Instance.new("Frame")
     container.Name = "NotificationContainer"
-    container.Size = UDim2.new(0, 300, 1, -20)
-    container.Position = UDim2.new(1, -320, 0, 10)
+    container.Size = UDim2.new(0, 320, 1, -20)
+    container.Position = UDim2.new(1, -330, 0, 10)
     container.BackgroundTransparency = 1
+    container.ZIndex = 100
     container.Parent = gui
     
     local layout = Instance.new("UIListLayout")
     layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 10)
+    layout.Padding = UDim.new(0, 8)
     layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
     layout.Parent = container
 end
+
+-- Notification types with icons and colors
+local NotificationTypes = {
+    Info = {Icon = "ℹ️", Color = Color3.fromRGB(100, 150, 255)},
+    Success = {Icon = "✓", Color = Color3.fromRGB(100, 200, 100)},
+    Warning = {Icon = "⚠", Color = Color3.fromRGB(255, 180, 50)},
+    Error = {Icon = "✗", Color = Color3.fromRGB(255, 80, 80)},
+    Loading = {Icon = "⟳", Color = Color3.fromRGB(150, 150, 255)}
+}
 
 function Notifications:Notify(options)
     if not container then return end
     options = options or {}
     local title = options.Title or "Notification"
-    local content = options.Content or "Message"
-    local duration = options.Duration or 3
+    local content = options.Content or ""
+    local duration = options.Duration or 4
+    local notifType = options.Type or "Info"
+    local typeData = NotificationTypes[notifType] or NotificationTypes.Info
+    local callback = options.Callback
     
     local frame = Instance.new("Frame")
     frame.Name = "Notification"
-    frame.Size = UDim2.new(1, 0, 0, 0) -- Start small
+    frame.Size = UDim2.new(1, 0, 0, 0)
     frame.BackgroundColor3 = ThemeManager.Theme.Background
-    frame.BackgroundTransparency = 0.1
+    frame.BackgroundTransparency = 0.05
     frame.BorderSizePixel = 0
     frame.ClipsDescendants = true
+    frame.ZIndex = 100
     frame.Parent = container
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
+    corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = frame
     
     local stroke = Instance.new("UIStroke")
     stroke.Color = ThemeManager.Theme.Outline
     stroke.Thickness = 1
+    stroke.Transparency = 0.5
     stroke.Parent = frame
     
+    -- Accent bar on left
+    local accentBar = Instance.new("Frame")
+    accentBar.Name = "AccentBar"
+    accentBar.Size = UDim2.new(0, 4, 1, 0)
+    accentBar.BackgroundColor3 = typeData.Color
+    accentBar.BorderSizePixel = 0
+    accentBar.ZIndex = 101
+    accentBar.Parent = frame
+    
+    local accentCorner = Instance.new("UICorner")
+    accentCorner.CornerRadius = UDim.new(0, 8)
+    accentCorner.Parent = accentBar
+    
+    -- Icon
+    local iconLabel = Instance.new("TextLabel")
+    iconLabel.Name = "Icon"
+    iconLabel.Size = UDim2.new(0, 24, 0, 24)
+    iconLabel.Position = UDim2.new(0, 14, 0, 10)
+    iconLabel.BackgroundTransparency = 1
+    iconLabel.Text = typeData.Icon
+    iconLabel.TextColor3 = typeData.Color
+    iconLabel.Font = Enum.Font.GothamBold
+    iconLabel.TextSize = 16
+    iconLabel.ZIndex = 101
+    iconLabel.Parent = frame
+    
+    -- Title
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, -20, 0, 20)
-    titleLabel.Position = UDim2.new(0, 10, 0, 5)
+    titleLabel.Name = "Title"
+    titleLabel.Size = UDim2.new(1, -60, 0, 20)
+    titleLabel.Position = UDim2.new(0, 44, 0, 8)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = title
-    titleLabel.TextColor3 = ThemeManager.Theme.Accent
-    titleLabel.Font = ThemeManager.Theme.FontBold
+    titleLabel.TextColor3 = ThemeManager.Theme.Text
+    titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextSize = 14
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.ZIndex = 101
     titleLabel.Parent = frame
     
+    -- Content
     local contentLabel = Instance.new("TextLabel")
-    contentLabel.Size = UDim2.new(1, -20, 0, 0)
-    contentLabel.Position = UDim2.new(0, 10, 0, 25)
+    contentLabel.Name = "Content"
+    contentLabel.Size = UDim2.new(1, -54, 0, 30)
+    contentLabel.Position = UDim2.new(0, 44, 0, 28)
     contentLabel.BackgroundTransparency = 1
     contentLabel.Text = content
-    contentLabel.TextColor3 = ThemeManager.Theme.Text
-    contentLabel.Font = ThemeManager.Theme.Font
+    contentLabel.TextColor3 = ThemeManager.Theme.SubText
+    contentLabel.Font = Enum.Font.Gotham
     contentLabel.TextSize = 12
     contentLabel.TextXAlignment = Enum.TextXAlignment.Left
     contentLabel.TextWrapped = true
+    contentLabel.ZIndex = 101
     contentLabel.Parent = frame
     
-    -- Progress Bar
-    local progress = Instance.new("Frame")
-    progress.Size = UDim2.new(1, 0, 0, 2)
-    progress.Position = UDim2.new(0, 0, 1, -2)
-    progress.BackgroundColor3 = ThemeManager.Theme.Accent
-    progress.BorderSizePixel = 0
-    progress.Parent = frame
+    -- Close button
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Name = "Close"
+    closeBtn.Size = UDim2.new(0, 20, 0, 20)
+    closeBtn.Position = UDim2.new(1, -28, 0, 8)
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Text = "×"
+    closeBtn.TextColor3 = ThemeManager.Theme.SubText
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 18
+    closeBtn.ZIndex = 102
+    closeBtn.Parent = frame
     
-    -- Animate In
-    Utility:Tween(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 60)})
-    Utility:Tween(progress, TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 2)})
+    -- Progress bar at bottom
+    local progressBg = Instance.new("Frame")
+    progressBg.Name = "ProgressBg"
+    progressBg.Size = UDim2.new(1, -8, 0, 3)
+    progressBg.Position = UDim2.new(0, 4, 1, -6)
+    progressBg.BackgroundColor3 = ThemeManager.Theme.Outline
+    progressBg.BackgroundTransparency = 0.7
+    progressBg.BorderSizePixel = 0
+    progressBg.ZIndex = 101
+    progressBg.Parent = frame
     
-    delay(duration, function()
-        Utility:Tween(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0), BackgroundTransparency = 1})
-        wait(0.5)
+    local progressCorner = Instance.new("UICorner")
+    progressCorner.CornerRadius = UDim.new(0, 2)
+    progressCorner.Parent = progressBg
+    
+    local progressFill = Instance.new("Frame")
+    progressFill.Name = "Fill"
+    progressFill.Size = UDim2.new(1, 0, 1, 0)
+    progressFill.BackgroundColor3 = typeData.Color
+    progressFill.BorderSizePixel = 0
+    progressFill.ZIndex = 102
+    progressFill.Parent = progressBg
+    
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(0, 2)
+    fillCorner.Parent = progressFill
+    
+    -- Determine height based on content
+    local height = content ~= "" and 70 or 45
+    
+    -- Animate in
+    local tweenIn = TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+        Size = UDim2.new(1, 0, 0, height)
+    })
+    tweenIn:Play()
+    
+    -- Progress bar animation
+    local progressTween = TweenService:Create(progressFill, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
+        Size = UDim2.new(0, 0, 1, 0)
+    })
+    progressTween:Play()
+    
+    local function dismiss()
+        progressTween:Cancel()
+        local tweenOut = TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+            Size = UDim2.new(1, 0, 0, 0),
+            BackgroundTransparency = 1
+        })
+        tweenOut:Play()
+        tweenOut.Completed:Wait()
         frame:Destroy()
+        if callback then
+            callback()
+        end
+    end
+    
+    closeBtn.MouseButton1Click:Connect(dismiss)
+    
+    -- Auto dismiss
+    task.delay(duration, function()
+        if frame and frame.Parent then
+            dismiss()
+        end
     end)
+    
+    -- Return notification object for manual control
+    return {
+        Frame = frame,
+        Dismiss = dismiss,
+        UpdateContent = function(newContent)
+            contentLabel.Text = newContent
+        end,
+        UpdateProgress = function(progress)
+            progressFill.Size = UDim2.new(math.clamp(progress, 0, 1), 0, 1, 0)
+        end
+    }
+end
+
+-- Convenience methods
+function Notifications:Info(title, content, duration)
+    return self:Notify({Title = title, Content = content, Duration = duration or 4, Type = "Info"})
+end
+
+function Notifications:Success(title, content, duration)
+    return self:Notify({Title = title, Content = content, Duration = duration or 4, Type = "Success"})
+end
+
+function Notifications:Warning(title, content, duration)
+    return self:Notify({Title = title, Content = content, Duration = duration or 4, Type = "Warning"})
+end
+
+function Notifications:Error(title, content, duration)
+    return self:Notify({Title = title, Content = content, Duration = duration or 4, Type = "Error"})
+end
+
+function Notifications:Loading(title, content, duration)
+    return self:Notify({Title = title, Content = content, Duration = duration or 10, Type = "Loading"})
 end
 
 
@@ -2170,6 +2313,7 @@ modules["Window"] = {
         local Window = {}
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local Utility = LoadModule("Utility")
 local ThemeManager = LoadModule("ThemeManager")
 local Acrylic = LoadModule("Acrylic")
@@ -2178,6 +2322,7 @@ local SearchFeature = LoadModule("Search")
 local Watermark = LoadModule("Watermark")
 local KeybindList = LoadModule("KeybindList")
 local SaveManager = LoadModule("SaveManager")
+local Notifications = LoadModule("Notifications")
 
 function Window.new(options)
     options = options or {}
@@ -2486,6 +2631,58 @@ function Window.new(options)
     SearchFeature:Init(searchBar, WindowObj)
     Watermark:Init(gui)
     KeybindList:Init(gui)
+    Notifications:Init(gui)
+    
+    -- Expose Notifications on the window object
+    WindowObj.Notifications = Notifications
+    
+    -- Notify helper
+    function WindowObj:Notify(options)
+        return Notifications:Notify(options)
+    end
+    
+    -- Unload function with progress notification
+    function WindowObj:Unload()
+        local notif = Notifications:Loading("Unloading", "Cleaning up UI...", 3)
+        
+        -- Animate progress
+        task.spawn(function()
+            for i = 1, 10 do
+                task.wait(0.15)
+                if notif and notif.UpdateProgress then
+                    notif.UpdateProgress(1 - (i / 10))
+                end
+                if notif and notif.UpdateContent then
+                    local messages = {
+                        "Cleaning up UI...",
+                        "Stopping connections...",
+                        "Clearing cache...",
+                        "Removing elements...",
+                        "Saving settings...",
+                        "Disconnecting events...",
+                        "Finalizing...",
+                        "Almost done...",
+                        "Wrapping up...",
+                        "Goodbye!"
+                    }
+                    notif.UpdateContent(messages[i] or "Unloading...")
+                end
+            end
+        end)
+        
+        task.wait(1.5)
+        
+        -- Fade out main window
+        local fadeOut = TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, 700, 0, 0)
+        })
+        fadeOut:Play()
+        fadeOut.Completed:Wait()
+        
+        -- Destroy the GUI
+        gui:Destroy()
+    end
     
     return WindowObj
 end

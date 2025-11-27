@@ -248,6 +248,16 @@ local Window = Library.Window.new({
     Folder = "GRGScript"
 })
 
+-- Welcome notification
+task.delay(0.5, function()
+    Window:Notify({
+        Title = "Welcome!",
+        Content = "#1 GRG Script loaded successfully. Press K to toggle UI.",
+        Duration = 5,
+        Type = "Success"
+    })
+end)
+
 --==============================================================================
 -- ESP & TELEPORT TAB
 --==============================================================================
@@ -315,6 +325,12 @@ ESPSection:AddToggle({
                 end
             end
         end
+        Window:Notify({
+            Title = "Player ESP",
+            Content = value and "Player ESP enabled" or "Player ESP disabled",
+            Duration = 2,
+            Type = value and "Success" or "Info"
+        })
     end
 })
 
@@ -524,6 +540,12 @@ for _, loc in ipairs(teleportLocations) do
         Text = loc[1],
         Callback = function()
             teleportTo(loc[2])
+            Window:Notify({
+                Title = "Teleported",
+                Content = "Teleported to " .. loc[1],
+                Duration = 2,
+                Type = "Success"
+            })
         end
     })
 end
@@ -900,11 +922,7 @@ ConfigSection:AddKeybind({
 ConfigSection:AddButton({
     Text = "Unload UI",
     Callback = function()
-        Window:Toggle(false)
-        Library.Notifications:Notify({Title = "Unloading", Content = "Cleaning up UI...", Duration = 1})
-        task.delay(1, function()
-            if Window.Gui then Window.Gui:Destroy() end
-        end)
+        Window:Unload()
     end
 })
 
