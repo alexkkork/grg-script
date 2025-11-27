@@ -1676,46 +1676,28 @@ end
 modules["Acrylic"] = {
     fn = function()
         local Acrylic = {}
-local RunService = game:GetService("RunService")
-local Lighting = game:GetService("Lighting")
-local Workspace = game:GetService("Workspace")
-
--- Constants
-local CAMERA_FOV = 70
-local PART_SIZE = 0.01
-
-function Acrylic:Enable()
-    -- Check if already enabled or if Graphic Quality is too low
-    -- For this implementation, we'll assume high enough quality or fallback
-end
+local ThemeManager = LoadModule("ThemeManager")
 
 function Acrylic:CreateAcrylic()
     local Effect = {}
     
     function Effect:Enable(frame, transparency)
         if not frame then return end
-        transparency = transparency or 0.98
+        transparency = transparency or 0.85
         
         -- Create the core acrylic container
-        local acrylicFrame = Instance.new("ImageLabel")
+        local acrylicFrame = Instance.new("Frame")
         acrylicFrame.Name = "AcrylicFrame"
-        acrylicFrame.BackgroundTransparency = 1
         acrylicFrame.Size = UDim2.new(1, 0, 1, 0)
-        acrylicFrame.Image = "rbxassetid://0" -- Placeholder or noise texture
-        acrylicFrame.ImageTransparency = 0.5
+        acrylicFrame.BackgroundColor3 = ThemeManager.Theme.Background
+        acrylicFrame.BackgroundTransparency = transparency
+        acrylicFrame.BorderSizePixel = 0
+        acrylicFrame.ZIndex = 0
         acrylicFrame.Parent = frame
         
-        -- NOTE: A true Glassmorphism effect in Roblox requires a complex ViewportFrame setup 
-        -- that mirrors the workspace. For reliability and performance in a UI Library,
-        -- we will use a high-quality semi-transparent backdrop with a global blur 
-        -- trigger or simply a really nice dark frosted look.
-        
-        -- If we want "Real" blur behind just this frame, it's very expensive. 
-        -- Instead, we'll simulate it with a dark overlay and rely on the global 
-        -- lighting blur if the user enables it.
-        
-        acrylicFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-        acrylicFrame.BackgroundTransparency = 0.2
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 10)
+        corner.Parent = acrylicFrame
         
         -- Add a subtle noise overlay for texture
         local noise = Instance.new("ImageLabel")
@@ -1723,10 +1705,20 @@ function Acrylic:CreateAcrylic()
         noise.BackgroundTransparency = 1
         noise.Size = UDim2.new(1, 0, 1, 0)
         noise.Image = "rbxassetid://12975612867" -- Common noise texture
-        noise.ImageTransparency = 0.95
+        noise.ImageTransparency = 0.97
         noise.ScaleType = Enum.ScaleType.Tile
         noise.TileSize = UDim2.new(0, 128, 0, 128)
+        noise.ZIndex = 1
         noise.Parent = acrylicFrame
+        
+        local noiseCorner = Instance.new("UICorner")
+        noiseCorner.CornerRadius = UDim.new(0, 10)
+        noiseCorner.Parent = noise
+        
+        -- Listen for theme updates
+        ThemeManager.ThemeUpdate.Event:Connect(function()
+            acrylicFrame.BackgroundColor3 = ThemeManager.Theme.Background
+        end)
         
         return acrylicFrame
     end
