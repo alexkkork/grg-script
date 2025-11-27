@@ -17,15 +17,19 @@ local camera = Workspace.CurrentCamera
 local function CreateLoadingScreen()
     local loadingGui = Instance.new("ScreenGui")
     loadingGui.Name = "GRGLoader"
-    loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    loadingGui.DisplayOrder = 999999
+    loadingGui.IgnoreGuiInset = true
     loadingGui.ResetOnSpawn = false
     loadingGui.Parent = CoreGui
     
     local bg = Instance.new("Frame")
     bg.Name = "Background"
     bg.Size = UDim2.new(1, 0, 1, 0)
+    bg.Position = UDim2.new(0, 0, 0, 0)
     bg.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
     bg.BorderSizePixel = 0
+    bg.ZIndex = 100
     bg.Parent = loadingGui
     
     local container = Instance.new("Frame")
@@ -441,6 +445,12 @@ ESPSection:AddToggle({
     Callback = function(value)
         ESP.MoneyTreesEnabled = value
         if not value then hideTreeESP(ESP.MoneyTreeBoxes) end
+        Window:Notify({
+            Title = "Money Tree ESP",
+            Content = value and "Money Tree ESP enabled" or "Money Tree ESP disabled",
+            Duration = 2,
+            Type = value and "Success" or "Info"
+        })
     end
 })
 
@@ -450,6 +460,12 @@ ESPSection:AddToggle({
     Callback = function(value)
         ESP.FruitTreesEnabled = value
         if not value then hideTreeESP(ESP.FruitTreeBoxes) end
+        Window:Notify({
+            Title = "Fruit Tree ESP",
+            Content = value and "Fruit Tree ESP enabled" or "Fruit Tree ESP disabled",
+            Duration = 2,
+            Type = value and "Success" or "Info"
+        })
     end
 })
 
@@ -474,9 +490,15 @@ TeleportSection:AddButton({
     Text = "Nearest Money Tree",
     Callback = function()
         local treesFolder = Workspace:FindFirstChild("Trees")
-        if not treesFolder then return end
+        if not treesFolder then 
+            Window:Notify({Title = "Error", Content = "Trees folder not found", Duration = 2, Type = "Error"})
+            return 
+        end
         local hrp = getHRP()
-        if not hrp then return end
+        if not hrp then 
+            Window:Notify({Title = "Error", Content = "Character not found", Duration = 2, Type = "Error"})
+            return 
+        end
         
         local nearest, shortestDist = nil, math.huge
         for _, tree in ipairs(treesFolder:GetChildren()) do
@@ -494,7 +516,12 @@ TeleportSection:AddButton({
                 end
             end
         end
-        if nearest then teleportTo(nearest + Vector3.new(0, 5, 0)) end
+        if nearest then 
+            teleportTo(nearest + Vector3.new(0, 5, 0))
+            Window:Notify({Title = "Teleported", Content = "Teleported to nearest Money Tree", Duration = 2, Type = "Success"})
+        else
+            Window:Notify({Title = "Not Found", Content = "No Money Trees found", Duration = 2, Type = "Warning"})
+        end
     end
 })
 
@@ -502,9 +529,15 @@ TeleportSection:AddButton({
     Text = "Nearest Fruit Tree",
     Callback = function()
         local treesFolder = Workspace:FindFirstChild("Trees")
-        if not treesFolder then return end
+        if not treesFolder then 
+            Window:Notify({Title = "Error", Content = "Trees folder not found", Duration = 2, Type = "Error"})
+            return 
+        end
         local hrp = getHRP()
-        if not hrp then return end
+        if not hrp then 
+            Window:Notify({Title = "Error", Content = "Character not found", Duration = 2, Type = "Error"})
+            return 
+        end
         
         local nearest, shortestDist = nil, math.huge
         for _, tree in ipairs(treesFolder:GetChildren()) do
@@ -526,7 +559,12 @@ TeleportSection:AddButton({
                 end
             end
         end
-        if nearest then teleportTo(nearest + Vector3.new(0, 5, 0)) end
+        if nearest then 
+            teleportTo(nearest + Vector3.new(0, 5, 0))
+            Window:Notify({Title = "Teleported", Content = "Teleported to nearest Fruit Tree", Duration = 2, Type = "Success"})
+        else
+            Window:Notify({Title = "Not Found", Content = "No Fruit Trees found", Duration = 2, Type = "Warning"})
+        end
     end
 })
 
@@ -565,6 +603,12 @@ TeleportSection:AddToggle({
     Default = false,
     Callback = function(value)
         leaderTPEnabled = value
+        Window:Notify({
+            Title = "Leader TP",
+            Content = value and "Teleporting to leader on loop" or "Leader TP disabled",
+            Duration = 2,
+            Type = value and "Success" or "Info"
+        })
         if value then
             task.spawn(function()
                 while leaderTPEnabled do
@@ -623,8 +667,10 @@ PlayerSection:AddToggle({
         PlayerMods.FlyEnabled = value
         if value then
             enableFly()
+            Window:Notify({Title = "Fly", Content = "Fly enabled - Use WASD + Space/Shift", Duration = 3, Type = "Success"})
         else
             disableFly()
+            Window:Notify({Title = "Fly", Content = "Fly disabled", Duration = 2, Type = "Info"})
         end
     end
 })
@@ -679,6 +725,12 @@ PlayerSection:AddToggle({
     Default = false,
     Callback = function(value)
         PlayerMods.InfiniteJumpEnabled = value
+        Window:Notify({
+            Title = "Infinite Jump",
+            Content = value and "Infinite Jump enabled" or "Infinite Jump disabled",
+            Duration = 2,
+            Type = value and "Success" or "Info"
+        })
     end
 })
 
@@ -726,15 +778,18 @@ local ExtrasSection = ExtrasTab:AddSection("Features")
 ExtrasSection:AddButton({
     Text = "Server Invisibility",
     Callback = function()
+        Window:Notify({Title = "Loading", Content = "Loading Server Invisibility...", Duration = 2, Type = "Loading"})
         local url = 'https://pastebin.com/raw/5dQ40eZG'
         local ok, code = pcall(function() return game:HttpGet(url) end)
         if ok and code then
             local success, err = pcall(loadstring(code))
             if success then
-                Library.Notifications:Notify({Title = "Server Invis", Content = "Loaded successfully!", Duration = 3})
+                Window:Notify({Title = "Server Invis", Content = "Loaded successfully!", Duration = 3, Type = "Success"})
             else
-                Library.Notifications:Notify({Title = "Error", Content = tostring(err), Duration = 5})
+                Window:Notify({Title = "Error", Content = tostring(err), Duration = 5, Type = "Error"})
             end
+        else
+            Window:Notify({Title = "Error", Content = "Failed to fetch script", Duration = 3, Type = "Error"})
         end
     end
 })
@@ -744,6 +799,12 @@ ExtrasSection:AddToggle({
     Default = false,
     Callback = function(value)
         Autofarm.BarbEnabled = value
+        Window:Notify({
+            Title = "Barb Autofarm",
+            Content = value and "Autofarm enabled - Stealing food" or "Autofarm disabled",
+            Duration = 2,
+            Type = value and "Success" or "Info"
+        })
         if value then
             task.spawn(function()
                 while Autofarm.BarbEnabled do
@@ -772,6 +833,9 @@ AutoteamSection:AddDropdown({
     Default = "None",
     Callback = function(value)
         Autofarm.AutoteamRole = value
+        if value ~= "None" then
+            Window:Notify({Title = "Autoteam", Content = "Selected team: " .. value, Duration = 2, Type = "Info"})
+        end
     end
 })
 
@@ -780,6 +844,15 @@ AutoteamSection:AddToggle({
     Default = false,
     Callback = function(value)
         Autofarm.AutoteamEnabled = value
+        if value then
+            if Autofarm.AutoteamRole == "None" then
+                Window:Notify({Title = "Autoteam", Content = "Please select a team first!", Duration = 3, Type = "Warning"})
+                return
+            end
+            Window:Notify({Title = "Autoteam", Content = "Auto-joining " .. Autofarm.AutoteamRole, Duration = 2, Type = "Success"})
+        else
+            Window:Notify({Title = "Autoteam", Content = "Auto join disabled", Duration = 2, Type = "Info"})
+        end
         if value and Autofarm.AutoteamRole ~= "None" then
             task.spawn(function()
                 while Autofarm.AutoteamEnabled and player.Team and player.Team.Name == "Spectating" do
