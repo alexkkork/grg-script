@@ -133,21 +133,30 @@ local loadingSteps = {
     "Finalizing..."
 }
 
+-- Load the library in background while showing loading screen
+local Library = nil
+local libraryLoaded = false
+
 task.spawn(function()
-    for i, stepText in ipairs(loadingSteps) do
-        if not loadingGui.Parent then break end
-        statusLabel.Text = stepText
-        local progress = i / #loadingSteps
-        TweenService:Create(barFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(progress, 0, 1, 0)
-        }):Play()
-        percentLabel.Text = math.floor(progress * 100) .. "%"
-        task.wait(0.35)
-    end
+    Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/alexkkork/grg-script/main/Release.lua"))()
+    libraryLoaded = true
 end)
 
--- Load the library
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/alexkkork/grg-script/main/Release.lua"))()
+-- Run loading animation
+for i, stepText in ipairs(loadingSteps) do
+    statusLabel.Text = stepText
+    local progress = i / #loadingSteps
+    TweenService:Create(barFill, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+        Size = UDim2.new(progress, 0, 1, 0)
+    }):Play()
+    percentLabel.Text = math.floor(progress * 100) .. "%"
+    task.wait(0.6)
+end
+
+-- Wait for library to finish loading if it hasn't yet
+while not libraryLoaded do
+    task.wait(0.1)
+end
 
 -- Finish loading and fade out
 statusLabel.Text = "Complete!"
