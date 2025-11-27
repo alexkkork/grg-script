@@ -698,7 +698,7 @@ local ThemeSection = SettingsTab:AddSection("Theme")
 
 ThemeSection:AddDropdown({
     Text = "Theme Presets",
-    Options = {"Default", "Ocean", "Midnight", "Forest", "Crimson"},
+    Options = {"Default", "Ocean", "Midnight", "Forest", "Crimson", "Rose", "Sunset", "Aqua", "Neon", "Dark"},
     Default = "Default",
     Callback = function(val)
         Library.ThemeManager:ApplyPreset(val)
