@@ -364,13 +364,15 @@ for _, loc in ipairs(teleportLocations) do
     })
 end
 
+local leaderTPEnabled = false
 TeleportSection:AddToggle({
     Text = "TP to Current Leader (Loop)",
     Default = false,
     Callback = function(value)
+        leaderTPEnabled = value
         if value then
             task.spawn(function()
-                while value do
+                while leaderTPEnabled do
                     local leaders = {}
                     for _, p in pairs(Players:GetPlayers()) do
                         if p.Team and p.Team.Name == "Leader" and p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
