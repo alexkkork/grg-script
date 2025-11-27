@@ -3522,7 +3522,7 @@ Loader:Start(function(report)
     --==============================================================================
     local Window = Library.Window.new({
         Title = "#1 GRG Script",
-        Author = "ash",
+        Author = "alex",
         Folder = "GRGScript"
     })
     
@@ -4212,7 +4212,7 @@ Loader:Start(function(report)
     local CreditsSection = CreditsTab:AddSection("Info")
     
     CreditsSection:AddButton({
-        Text = "Script made by ash (discord: nattykol)",
+        Text = "Script made by alex",
         Callback = function() end
     })
     
