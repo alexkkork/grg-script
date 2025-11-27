@@ -14,174 +14,159 @@ local camera = Workspace.CurrentCamera
 --==============================================================================
 -- FAKE LOADING SCREEN
 --==============================================================================
-local function CreateLoadingScreen()
-    local loadingGui = Instance.new("ScreenGui")
-    loadingGui.Name = "GRGLoader"
-    loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-    loadingGui.DisplayOrder = 999999
-    loadingGui.IgnoreGuiInset = true
-    loadingGui.ResetOnSpawn = false
-    loadingGui.Parent = CoreGui
-    
-    local bg = Instance.new("Frame")
-    bg.Name = "Background"
-    bg.AnchorPoint = Vector2.new(0.5, 0.5)
-    bg.Size = UDim2.new(1.5, 0, 1.5, 0)
-    bg.Position = UDim2.new(0.5, 0, 0.5, 0)
-    bg.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
-    bg.BorderSizePixel = 0
-    bg.ZIndex = 100
-    bg.Parent = loadingGui
-    
-    local container = Instance.new("Frame")
-    container.Name = "Container"
-    container.Size = UDim2.new(0, 400, 0, 200)
-    container.Position = UDim2.new(0.5, -200, 0.5, -100)
-    container.BackgroundTransparency = 1
-    container.Parent = bg
-    
-    local title = Instance.new("TextLabel")
-    title.Name = "Title"
-    title.Size = UDim2.new(1, 0, 0, 50)
-    title.Position = UDim2.new(0, 0, 0, 0)
-    title.BackgroundTransparency = 1
-    title.Text = "#1 GRG Script"
-    title.TextColor3 = Color3.fromRGB(255, 100, 150)
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 36
-    title.Parent = container
-    
-    local subtitle = Instance.new("TextLabel")
-    subtitle.Name = "Subtitle"
-    subtitle.Size = UDim2.new(1, 0, 0, 25)
-    subtitle.Position = UDim2.new(0, 0, 0, 50)
-    subtitle.BackgroundTransparency = 1
-    subtitle.Text = "made by alex"
-    subtitle.TextColor3 = Color3.fromRGB(150, 150, 150)
-    subtitle.Font = Enum.Font.Gotham
-    subtitle.TextSize = 16
-    subtitle.Parent = container
-    
-    local barBg = Instance.new("Frame")
-    barBg.Name = "BarBackground"
-    barBg.Size = UDim2.new(1, 0, 0, 6)
-    barBg.Position = UDim2.new(0, 0, 0, 100)
-    barBg.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-    barBg.BorderSizePixel = 0
-    barBg.Parent = container
-    
-    local barCorner = Instance.new("UICorner")
-    barCorner.CornerRadius = UDim.new(0, 3)
-    barCorner.Parent = barBg
-    
-    -- Add stroke to make the bar track more visible
-    local barStroke = Instance.new("UIStroke")
-    barStroke.Color = Color3.fromRGB(80, 80, 90)
-    barStroke.Thickness = 1
-    barStroke.Parent = barBg
-    
-    local barFill = Instance.new("Frame")
-    barFill.Name = "Fill"
-    barFill.Size = UDim2.new(1, 0, 1, 0)  -- Start full
-    barFill.BackgroundColor3 = Color3.fromRGB(255, 100, 150)
-    barFill.BorderSizePixel = 0
-    barFill.Parent = barBg
-    
-    local fillCorner = Instance.new("UICorner")
-    fillCorner.CornerRadius = UDim.new(0, 3)
-    fillCorner.Parent = barFill
-    
-    -- Start with bar at 0 for animation
-    barFill.Size = UDim2.new(0, 0, 1, 0)
-    
-    local statusLabel = Instance.new("TextLabel")
-    statusLabel.Name = "Status"
-    statusLabel.Size = UDim2.new(1, 0, 0, 20)
-    statusLabel.Position = UDim2.new(0, 0, 0, 115)
-    statusLabel.BackgroundTransparency = 1
-    statusLabel.Text = "Initializing..."
-    statusLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
-    statusLabel.Font = Enum.Font.Gotham
-    statusLabel.TextSize = 12
-    statusLabel.Parent = container
-    
-    local percentLabel = Instance.new("TextLabel")
-    percentLabel.Name = "Percent"
-    percentLabel.Size = UDim2.new(1, 0, 0, 20)
-    percentLabel.Position = UDim2.new(0, 0, 0, 135)
-    percentLabel.BackgroundTransparency = 1
-    percentLabel.Text = "0%"
-    percentLabel.TextColor3 = Color3.fromRGB(255, 100, 150)
-    percentLabel.Font = Enum.Font.GothamBold
-    percentLabel.TextSize = 14
-    percentLabel.Parent = container
-    
-    -- Fake loading steps
-    local steps = {
-        {text = "Connecting to server...", duration = 0.4},
-        {text = "Loading UI Library...", duration = 0.6},
-        {text = "Initializing modules...", duration = 0.5},
-        {text = "Loading ESP system...", duration = 0.3},
-        {text = "Loading teleport system...", duration = 0.4},
-        {text = "Loading player mods...", duration = 0.3},
-        {text = "Loading autofarm...", duration = 0.4},
-        {text = "Checking executor compatibility...", duration = 0.5},
-        {text = "Applying theme...", duration = 0.3},
-        {text = "Finalizing...", duration = 0.3}
-    }
-    
-    local totalDuration = 0
-    for _, step in ipairs(steps) do
-        totalDuration = totalDuration + step.duration
-    end
-    
-    local currentProgress = 0
-    for i, step in ipairs(steps) do
-        statusLabel.Text = step.text
-        local targetProgress = (i / #steps)
-        
-        local tween = TweenService:Create(barFill, TweenInfo.new(step.duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Size = UDim2.new(targetProgress, 0, 1, 0)
-        })
-        tween:Play()
-        
-        -- Update percent during tween
-        local startTime = tick()
-        while tick() - startTime < step.duration do
-            local elapsed = tick() - startTime
-            local progress = currentProgress + (targetProgress - currentProgress) * (elapsed / step.duration)
-            percentLabel.Text = math.floor(progress * 100) .. "%"
-            task.wait()
-        end
-        currentProgress = targetProgress
-        percentLabel.Text = math.floor(currentProgress * 100) .. "%"
-    end
-    
-    statusLabel.Text = "Complete!"
-    task.wait(0.3)
-    
-    -- Fade out everything
-    local fadeTime = 0.5
-    local fadeInfo = TweenInfo.new(fadeTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    
-    TweenService:Create(bg, fadeInfo, {BackgroundTransparency = 1}):Play()
-    TweenService:Create(title, fadeInfo, {TextTransparency = 1}):Play()
-    TweenService:Create(subtitle, fadeInfo, {TextTransparency = 1}):Play()
-    TweenService:Create(statusLabel, fadeInfo, {TextTransparency = 1}):Play()
-    TweenService:Create(percentLabel, fadeInfo, {TextTransparency = 1}):Play()
-    TweenService:Create(barBg, fadeInfo, {BackgroundTransparency = 1}):Play()
-    TweenService:Create(barFill, fadeInfo, {BackgroundTransparency = 1}):Play()
-    TweenService:Create(barStroke, fadeInfo, {Transparency = 1}):Play()
-    
-    task.wait(fadeTime)
-    loadingGui:Destroy()
-end
+local loadingGui = Instance.new("ScreenGui")
+loadingGui.Name = "GRGLoader"
+loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+loadingGui.DisplayOrder = 999999
+loadingGui.IgnoreGuiInset = true
+loadingGui.ResetOnSpawn = false
+loadingGui.Parent = CoreGui
 
--- Show loading screen
-CreateLoadingScreen()
+local bg = Instance.new("Frame")
+bg.Name = "Background"
+bg.AnchorPoint = Vector2.new(0.5, 0.5)
+bg.Size = UDim2.new(1.5, 0, 1.5, 0)
+bg.Position = UDim2.new(0.5, 0, 0.5, 0)
+bg.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+bg.BorderSizePixel = 0
+bg.ZIndex = 100
+bg.Parent = loadingGui
+
+local container = Instance.new("Frame")
+container.Name = "Container"
+container.Size = UDim2.new(0, 400, 0, 200)
+container.AnchorPoint = Vector2.new(0.5, 0.5)
+container.Position = UDim2.new(0.5, 0, 0.5, 0)
+container.BackgroundTransparency = 1
+container.ZIndex = 101
+container.Parent = loadingGui
+
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, 0, 0, 50)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "#1 GRG Script"
+title.TextColor3 = Color3.fromRGB(255, 100, 150)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 36
+title.ZIndex = 101
+title.Parent = container
+
+local subtitle = Instance.new("TextLabel")
+subtitle.Name = "Subtitle"
+subtitle.Size = UDim2.new(1, 0, 0, 25)
+subtitle.Position = UDim2.new(0, 0, 0, 50)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "made by alex"
+subtitle.TextColor3 = Color3.fromRGB(150, 150, 150)
+subtitle.Font = Enum.Font.Gotham
+subtitle.TextSize = 16
+subtitle.ZIndex = 101
+subtitle.Parent = container
+
+local barBg = Instance.new("Frame")
+barBg.Name = "BarBackground"
+barBg.Size = UDim2.new(1, 0, 0, 6)
+barBg.Position = UDim2.new(0, 0, 0, 100)
+barBg.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+barBg.BorderSizePixel = 0
+barBg.ZIndex = 101
+barBg.Parent = container
+
+local barCorner = Instance.new("UICorner")
+barCorner.CornerRadius = UDim.new(0, 3)
+barCorner.Parent = barBg
+
+local barStroke = Instance.new("UIStroke")
+barStroke.Color = Color3.fromRGB(80, 80, 90)
+barStroke.Thickness = 1
+barStroke.Parent = barBg
+
+local barFill = Instance.new("Frame")
+barFill.Name = "Fill"
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(255, 100, 150)
+barFill.BorderSizePixel = 0
+barFill.ZIndex = 102
+barFill.Parent = barBg
+
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(0, 3)
+fillCorner.Parent = barFill
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "Status"
+statusLabel.Size = UDim2.new(1, 0, 0, 20)
+statusLabel.Position = UDim2.new(0, 0, 0, 115)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Initializing..."
+statusLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextSize = 12
+statusLabel.ZIndex = 101
+statusLabel.Parent = container
+
+local percentLabel = Instance.new("TextLabel")
+percentLabel.Name = "Percent"
+percentLabel.Size = UDim2.new(1, 0, 0, 20)
+percentLabel.Position = UDim2.new(0, 0, 0, 135)
+percentLabel.BackgroundTransparency = 1
+percentLabel.Text = "0%"
+percentLabel.TextColor3 = Color3.fromRGB(255, 100, 150)
+percentLabel.Font = Enum.Font.GothamBold
+percentLabel.TextSize = 14
+percentLabel.ZIndex = 101
+percentLabel.Parent = container
+
+-- Loading animation in background
+local loadingSteps = {
+    "Connecting to server...",
+    "Loading UI Library...",
+    "Initializing modules...",
+    "Loading ESP system...",
+    "Loading teleport system...",
+    "Loading player mods...",
+    "Loading autofarm...",
+    "Checking executor...",
+    "Applying theme...",
+    "Finalizing..."
+}
+
+task.spawn(function()
+    for i, stepText in ipairs(loadingSteps) do
+        if not loadingGui.Parent then break end
+        statusLabel.Text = stepText
+        local progress = i / #loadingSteps
+        TweenService:Create(barFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(progress, 0, 1, 0)
+        }):Play()
+        percentLabel.Text = math.floor(progress * 100) .. "%"
+        task.wait(0.35)
+    end
+end)
 
 -- Load the library
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/alexkkork/grg-script/main/Release.lua"))()
+
+-- Finish loading and fade out
+statusLabel.Text = "Complete!"
+percentLabel.Text = "100%"
+TweenService:Create(barFill, TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+task.wait(0.3)
+
+-- Fade out
+local fadeInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+TweenService:Create(bg, fadeInfo, {BackgroundTransparency = 1}):Play()
+TweenService:Create(title, fadeInfo, {TextTransparency = 1}):Play()
+TweenService:Create(subtitle, fadeInfo, {TextTransparency = 1}):Play()
+TweenService:Create(statusLabel, fadeInfo, {TextTransparency = 1}):Play()
+TweenService:Create(percentLabel, fadeInfo, {TextTransparency = 1}):Play()
+TweenService:Create(barBg, fadeInfo, {BackgroundTransparency = 1}):Play()
+TweenService:Create(barFill, fadeInfo, {BackgroundTransparency = 1}):Play()
+TweenService:Create(barStroke, fadeInfo, {Transparency = 1}):Play()
+task.wait(0.4)
+loadingGui:Destroy()
 
 --==============================================================================
 -- UTILITY FUNCTIONS (Anticheat Bypass, Teleport helpers)
