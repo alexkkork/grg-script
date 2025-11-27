@@ -84,6 +84,26 @@ function Tab.new(name, icon, window)
         Active = false
     }
     
+    -- Theme Update Listener
+    ThemeManager.ThemeUpdate.Event:Connect(function()
+        indicator.BackgroundColor3 = ThemeManager.Theme.Accent
+        page.ScrollBarImageColor3 = ThemeManager.Theme.Accent
+        if TabObj.Active then
+            tabLabel.TextColor3 = ThemeManager.Theme.Text
+            tabButton.BackgroundColor3 = ThemeManager.Theme.Accent
+            if icon then
+                local ico = tabButton:FindFirstChild("Icon")
+                if ico then ico.ImageColor3 = ThemeManager.Theme.Text end
+            end
+        else
+            tabLabel.TextColor3 = ThemeManager.Theme.SubText
+            if icon then
+                local ico = tabButton:FindFirstChild("Icon")
+                if ico then ico.ImageColor3 = ThemeManager.Theme.SubText end
+            end
+        end
+    end)
+    
     function TabObj:Activate()
         -- Deactivate others
         for _, t in pairs(window.Tabs) do

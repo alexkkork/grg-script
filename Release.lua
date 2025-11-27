@@ -1731,6 +1731,13 @@ function Section.new(title, tab)
         Container = container
     }
     
+    -- Theme Update Listener
+    ThemeManager.ThemeUpdate.Event:Connect(function()
+        sectionFrame.BackgroundColor3 = ThemeManager.Theme.SectionBackground
+        stroke.Color = ThemeManager.Theme.Outline
+        titleLabel.TextColor3 = ThemeManager.Theme.Text
+    end)
+    
     -- Element Loaders
     function SectionObj:AddButton(options)
         return LoadModule("Button").new(options, SectionObj)
@@ -2336,6 +2343,24 @@ function Window.new(options)
         IsOpen = true
     }
     
+    -- Theme Update Listener
+    ThemeManager.ThemeUpdate.Event:Connect(function()
+        mainFrame.BackgroundColor3 = ThemeManager.Theme.Background
+        stroke.Color = ThemeManager.Theme.Outline
+        sidebar.BackgroundColor3 = ThemeManager.Theme.SectionBackground
+        titleLabel.TextColor3 = ThemeManager.Theme.Accent
+        authorLabel.TextColor3 = ThemeManager.Theme.SubText
+        tabContainer.ScrollBarImageColor3 = ThemeManager.Theme.Accent
+        userName.TextColor3 = ThemeManager.Theme.Text
+        searchBar.BackgroundColor3 = ThemeManager.Theme.Background
+        searchBar.TextColor3 = ThemeManager.Theme.Text
+        searchBar.PlaceholderColor3 = ThemeManager.Theme.SubText
+        searchStroke.Color = ThemeManager.Theme.Outline
+        openButton.BackgroundColor3 = ThemeManager.Theme.Background
+        openButton.TextColor3 = ThemeManager.Theme.Accent
+        closeIcon.ImageColor3 = ThemeManager.Theme.SubText
+    end)
+    
     local isOpen = true
     function WindowObj:Toggle(state)
         if state == nil then
@@ -2859,6 +2884,26 @@ function Tab.new(name, icon, window)
         Sections = {},
         Active = false
     }
+    
+    -- Theme Update Listener
+    ThemeManager.ThemeUpdate.Event:Connect(function()
+        indicator.BackgroundColor3 = ThemeManager.Theme.Accent
+        page.ScrollBarImageColor3 = ThemeManager.Theme.Accent
+        if TabObj.Active then
+            tabLabel.TextColor3 = ThemeManager.Theme.Text
+            tabButton.BackgroundColor3 = ThemeManager.Theme.Accent
+            if icon then
+                local ico = tabButton:FindFirstChild("Icon")
+                if ico then ico.ImageColor3 = ThemeManager.Theme.Text end
+            end
+        else
+            tabLabel.TextColor3 = ThemeManager.Theme.SubText
+            if icon then
+                local ico = tabButton:FindFirstChild("Icon")
+                if ico then ico.ImageColor3 = ThemeManager.Theme.SubText end
+            end
+        end
+    end)
     
     function TabObj:Activate()
         -- Deactivate others

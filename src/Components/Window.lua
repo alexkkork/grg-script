@@ -252,6 +252,24 @@ function Window.new(options)
         IsOpen = true
     }
     
+    -- Theme Update Listener
+    ThemeManager.ThemeUpdate.Event:Connect(function()
+        mainFrame.BackgroundColor3 = ThemeManager.Theme.Background
+        stroke.Color = ThemeManager.Theme.Outline
+        sidebar.BackgroundColor3 = ThemeManager.Theme.SectionBackground
+        titleLabel.TextColor3 = ThemeManager.Theme.Accent
+        authorLabel.TextColor3 = ThemeManager.Theme.SubText
+        tabContainer.ScrollBarImageColor3 = ThemeManager.Theme.Accent
+        userName.TextColor3 = ThemeManager.Theme.Text
+        searchBar.BackgroundColor3 = ThemeManager.Theme.Background
+        searchBar.TextColor3 = ThemeManager.Theme.Text
+        searchBar.PlaceholderColor3 = ThemeManager.Theme.SubText
+        searchStroke.Color = ThemeManager.Theme.Outline
+        openButton.BackgroundColor3 = ThemeManager.Theme.Background
+        openButton.TextColor3 = ThemeManager.Theme.Accent
+        closeIcon.ImageColor3 = ThemeManager.Theme.SubText
+    end)
+    
     local isOpen = true
     function WindowObj:Toggle(state)
         if state == nil then

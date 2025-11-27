@@ -56,6 +56,13 @@ function Section.new(title, tab)
         Container = container
     }
     
+    -- Theme Update Listener
+    ThemeManager.ThemeUpdate.Event:Connect(function()
+        sectionFrame.BackgroundColor3 = ThemeManager.Theme.SectionBackground
+        stroke.Color = ThemeManager.Theme.Outline
+        titleLabel.TextColor3 = ThemeManager.Theme.Text
+    end)
+    
     -- Element Loaders
     function SectionObj:AddButton(options)
         return require(script.Parent.Elements.Button).new(options, SectionObj)
