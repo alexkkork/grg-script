@@ -1665,7 +1665,6 @@ Library.Loader = LoadModule("Loader")
 Library.Compatibility = LoadModule("Compatibility")
 Library.Watermark = LoadModule("Watermark")
 Library.KeybindList = LoadModule("KeybindList")
-Library.GRG = require(script.Parent.Parent.Examples.GRG)
 
 
         return Library

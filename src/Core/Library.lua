@@ -7,6 +7,5 @@ Library.Loader = require(script.Parent.Loader)
 Library.Compatibility = require(script.Parent.Compatibility)
 Library.Watermark = require(script.Parent.Parent.Features.Watermark)
 Library.KeybindList = require(script.Parent.Parent.Features.KeybindList)
-Library.GRG = require(script.Parent.Parent.Examples.GRG)
 
 return Library
