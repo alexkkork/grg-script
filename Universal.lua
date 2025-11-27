@@ -3320,7 +3320,7 @@ Loader:Start(function(report)
         subtitle.Size = UDim2.new(1, 0, 0, 25)
         subtitle.Position = UDim2.new(0, 0, 0, 50)
         subtitle.BackgroundTransparency = 1
-        subtitle.Text = "Premium Hub UI"
+        subtitle.Text = "made by alex"
         subtitle.TextColor3 = Color3.fromRGB(150, 150, 150)
         subtitle.Font = Enum.Font.Gotham
         subtitle.TextSize = 16
