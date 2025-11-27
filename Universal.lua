@@ -3330,7 +3330,7 @@ Loader:Start(function(report)
         barBg.Name = "BarBackground"
         barBg.Size = UDim2.new(1, 0, 0, 6)
         barBg.Position = UDim2.new(0, 0, 0, 100)
-        barBg.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+        barBg.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
         barBg.BorderSizePixel = 0
         barBg.Parent = container
         
@@ -3338,9 +3338,15 @@ Loader:Start(function(report)
         barCorner.CornerRadius = UDim.new(0, 3)
         barCorner.Parent = barBg
         
+        -- Add stroke to make the bar track more visible
+        local barStroke = Instance.new("UIStroke")
+        barStroke.Color = Color3.fromRGB(80, 80, 90)
+        barStroke.Thickness = 1
+        barStroke.Parent = barBg
+        
         local barFill = Instance.new("Frame")
         barFill.Name = "Fill"
-        barFill.Size = UDim2.new(0, 0, 1, 0)
+        barFill.Size = UDim2.new(1, 0, 1, 0)  -- Start full
         barFill.BackgroundColor3 = Color3.fromRGB(255, 100, 150)
         barFill.BorderSizePixel = 0
         barFill.Parent = barBg
@@ -3348,6 +3354,9 @@ Loader:Start(function(report)
         local fillCorner = Instance.new("UICorner")
         fillCorner.CornerRadius = UDim.new(0, 3)
         fillCorner.Parent = barFill
+        
+        -- Start with bar at 0 for animation
+        barFill.Size = UDim2.new(0, 0, 1, 0)
         
         local statusLabel = Instance.new("TextLabel")
         statusLabel.Name = "Status"
