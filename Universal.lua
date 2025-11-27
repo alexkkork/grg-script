@@ -2948,6 +2948,7 @@ Loader:Start(function(report)
     if report and not report.FileIO then
         warn("This script requires FileIO support for Configs.")
     end
+    local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/alexkkork/grg-script/main/Release.lua"))()
     
     --==============================================================================
     -- SERVICES
