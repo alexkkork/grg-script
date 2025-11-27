@@ -1,5 +1,3 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/alexkkork/grg-script/main/Release.lua"))()
-
 --==============================================================================
 -- SERVICES
 --==============================================================================
@@ -7,9 +5,175 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
 
 local player = Players.LocalPlayer
 local camera = Workspace.CurrentCamera
+
+--==============================================================================
+-- FAKE LOADING SCREEN
+--==============================================================================
+local function CreateLoadingScreen()
+    local loadingGui = Instance.new("ScreenGui")
+    loadingGui.Name = "GRGLoader"
+    loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    loadingGui.ResetOnSpawn = false
+    loadingGui.Parent = CoreGui
+    
+    local bg = Instance.new("Frame")
+    bg.Name = "Background"
+    bg.Size = UDim2.new(1, 0, 1, 0)
+    bg.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+    bg.BorderSizePixel = 0
+    bg.Parent = loadingGui
+    
+    local container = Instance.new("Frame")
+    container.Name = "Container"
+    container.Size = UDim2.new(0, 400, 0, 200)
+    container.Position = UDim2.new(0.5, -200, 0.5, -100)
+    container.BackgroundTransparency = 1
+    container.Parent = bg
+    
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, 0, 0, 50)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "#1 GRG Script"
+    title.TextColor3 = Color3.fromRGB(255, 100, 150)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 36
+    title.Parent = container
+    
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Name = "Subtitle"
+    subtitle.Size = UDim2.new(1, 0, 0, 25)
+    subtitle.Position = UDim2.new(0, 0, 0, 50)
+    subtitle.BackgroundTransparency = 1
+    subtitle.Text = "Premium Hub UI"
+    subtitle.TextColor3 = Color3.fromRGB(150, 150, 150)
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.TextSize = 16
+    subtitle.Parent = container
+    
+    local barBg = Instance.new("Frame")
+    barBg.Name = "BarBackground"
+    barBg.Size = UDim2.new(1, 0, 0, 6)
+    barBg.Position = UDim2.new(0, 0, 0, 100)
+    barBg.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    barBg.BorderSizePixel = 0
+    barBg.Parent = container
+    
+    local barCorner = Instance.new("UICorner")
+    barCorner.CornerRadius = UDim.new(0, 3)
+    barCorner.Parent = barBg
+    
+    local barFill = Instance.new("Frame")
+    barFill.Name = "Fill"
+    barFill.Size = UDim2.new(0, 0, 1, 0)
+    barFill.BackgroundColor3 = Color3.fromRGB(255, 100, 150)
+    barFill.BorderSizePixel = 0
+    barFill.Parent = barBg
+    
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(0, 3)
+    fillCorner.Parent = barFill
+    
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Name = "Status"
+    statusLabel.Size = UDim2.new(1, 0, 0, 20)
+    statusLabel.Position = UDim2.new(0, 0, 0, 115)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Text = "Initializing..."
+    statusLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.TextSize = 12
+    statusLabel.Parent = container
+    
+    local percentLabel = Instance.new("TextLabel")
+    percentLabel.Name = "Percent"
+    percentLabel.Size = UDim2.new(1, 0, 0, 20)
+    percentLabel.Position = UDim2.new(0, 0, 0, 135)
+    percentLabel.BackgroundTransparency = 1
+    percentLabel.Text = "0%"
+    percentLabel.TextColor3 = Color3.fromRGB(255, 100, 150)
+    percentLabel.Font = Enum.Font.GothamBold
+    percentLabel.TextSize = 14
+    percentLabel.Parent = container
+    
+    -- Fake loading steps
+    local steps = {
+        {text = "Connecting to server...", duration = 0.4},
+        {text = "Loading UI Library...", duration = 0.6},
+        {text = "Initializing modules...", duration = 0.5},
+        {text = "Loading ESP system...", duration = 0.3},
+        {text = "Loading teleport system...", duration = 0.4},
+        {text = "Loading player mods...", duration = 0.3},
+        {text = "Loading autofarm...", duration = 0.4},
+        {text = "Checking executor compatibility...", duration = 0.5},
+        {text = "Applying theme...", duration = 0.3},
+        {text = "Finalizing...", duration = 0.3}
+    }
+    
+    local totalDuration = 0
+    for _, step in ipairs(steps) do
+        totalDuration = totalDuration + step.duration
+    end
+    
+    local currentProgress = 0
+    for i, step in ipairs(steps) do
+        statusLabel.Text = step.text
+        local targetProgress = (i / #steps)
+        
+        local tween = TweenService:Create(barFill, TweenInfo.new(step.duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = UDim2.new(targetProgress, 0, 1, 0)
+        })
+        tween:Play()
+        
+        -- Update percent during tween
+        local startTime = tick()
+        while tick() - startTime < step.duration do
+            local elapsed = tick() - startTime
+            local progress = currentProgress + (targetProgress - currentProgress) * (elapsed / step.duration)
+            percentLabel.Text = math.floor(progress * 100) .. "%"
+            task.wait()
+        end
+        currentProgress = targetProgress
+        percentLabel.Text = math.floor(currentProgress * 100) .. "%"
+    end
+    
+    statusLabel.Text = "Complete!"
+    task.wait(0.3)
+    
+    -- Fade out
+    local fadeOut = TweenService:Create(bg, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 1
+    })
+    local titleFade = TweenService:Create(title, TweenInfo.new(0.5), {TextTransparency = 1})
+    local subtitleFade = TweenService:Create(subtitle, TweenInfo.new(0.5), {TextTransparency = 1})
+    local statusFade = TweenService:Create(statusLabel, TweenInfo.new(0.5), {TextTransparency = 1})
+    local percentFade = TweenService:Create(percentLabel, TweenInfo.new(0.5), {TextTransparency = 1})
+    local barFade = TweenService:Create(barBg, TweenInfo.new(0.5), {BackgroundTransparency = 1})
+    local fillFade = TweenService:Create(barFill, TweenInfo.new(0.5), {BackgroundTransparency = 1})
+    
+    fadeOut:Play()
+    titleFade:Play()
+    subtitleFade:Play()
+    statusFade:Play()
+    percentFade:Play()
+    barFade:Play()
+    fillFade:Play()
+    
+    task.wait(0.5)
+    loadingGui:Destroy()
+end
+
+-- Show loading screen
+CreateLoadingScreen()
+
+-- Load the library
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/alexkkork/grg-script/main/Release.lua"))()
 
 --==============================================================================
 -- UTILITY FUNCTIONS (Anticheat Bypass, Teleport helpers)

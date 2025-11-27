@@ -6,7 +6,8 @@ function Acrylic:CreateAcrylic()
     
     function Effect:Enable(frame, transparency)
         if not frame then return end
-        transparency = transparency or 0.85
+        -- Low transparency = more visible color (0.1 = 90% visible)
+        transparency = transparency or 0.1
         
         -- Create the core acrylic container
         local acrylicFrame = Instance.new("Frame")
