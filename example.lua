@@ -25,9 +25,9 @@ local function CreateLoadingScreen()
     
     local bg = Instance.new("Frame")
     bg.Name = "Background"
-    bg.AnchorPoint = Vector2.new(0, 0)
-    bg.Size = UDim2.new(1, 100, 1, 100)
-    bg.Position = UDim2.new(0, -50, 0, -50)
+    bg.AnchorPoint = Vector2.new(0.5, 0.5)
+    bg.Size = UDim2.new(1.5, 0, 1.5, 0)
+    bg.Position = UDim2.new(0.5, 0, 0.5, 0)
     bg.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
     bg.BorderSizePixel = 0
     bg.ZIndex = 100
@@ -160,26 +160,20 @@ local function CreateLoadingScreen()
     statusLabel.Text = "Complete!"
     task.wait(0.3)
     
-    -- Fade out
-    local fadeOut = TweenService:Create(bg, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        BackgroundTransparency = 1
-    })
-    local titleFade = TweenService:Create(title, TweenInfo.new(0.5), {TextTransparency = 1})
-    local subtitleFade = TweenService:Create(subtitle, TweenInfo.new(0.5), {TextTransparency = 1})
-    local statusFade = TweenService:Create(statusLabel, TweenInfo.new(0.5), {TextTransparency = 1})
-    local percentFade = TweenService:Create(percentLabel, TweenInfo.new(0.5), {TextTransparency = 1})
-    local barFade = TweenService:Create(barBg, TweenInfo.new(0.5), {BackgroundTransparency = 1})
-    local fillFade = TweenService:Create(barFill, TweenInfo.new(0.5), {BackgroundTransparency = 1})
+    -- Fade out everything
+    local fadeTime = 0.5
+    local fadeInfo = TweenInfo.new(fadeTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     
-    fadeOut:Play()
-    titleFade:Play()
-    subtitleFade:Play()
-    statusFade:Play()
-    percentFade:Play()
-    barFade:Play()
-    fillFade:Play()
+    TweenService:Create(bg, fadeInfo, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(title, fadeInfo, {TextTransparency = 1}):Play()
+    TweenService:Create(subtitle, fadeInfo, {TextTransparency = 1}):Play()
+    TweenService:Create(statusLabel, fadeInfo, {TextTransparency = 1}):Play()
+    TweenService:Create(percentLabel, fadeInfo, {TextTransparency = 1}):Play()
+    TweenService:Create(barBg, fadeInfo, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(barFill, fadeInfo, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(barStroke, fadeInfo, {Transparency = 1}):Play()
     
-    task.wait(0.5)
+    task.wait(fadeTime)
     loadingGui:Destroy()
 end
 
